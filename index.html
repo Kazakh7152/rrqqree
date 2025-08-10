@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ИВЕНТ КАЗАХА :D — Модуль взлома</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+  :root{
+    --bg:#1a1f16;
+    --card:#222822;
+    --accent:#d4af37; /* золотисто-жёлтый */
+    --accent-dark:#b8860b;
+    --muted:#9ca3af;
+    --success:#00ff55;
+    --danger:#ff4040;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: url('https://i.ibb.co/vmyWFSF/camo-bg.jpg') center/cover fixed;
+    color:#f8f8f8;
+    padding:20px;
+  }
+  .container{
+    display:grid;
+    grid-template-columns: 1fr 300px;
+    gap:20px;
+    width:100%;
+    max-width:1080px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:8px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.6);
+    padding:18px;
+    border:2px solid var(--accent);
+  }
+  h1.title{
+    text-align:center;
+    font-size:28px;
+    letter-spacing:3px;
+    color:var(--accent);
+    margin-top:0;
+    border-bottom:2px solid var(--accent);
+    padding-bottom:10px;
+    margin-bottom:15px;
+    text-transform: uppercase;
+  }
+  .controls{display:flex;gap:10px;align-items:center;margin-bottom:15px}
+  button.btn{
+    background:var(--accent);
+    color:black;
+    border:0;
+    padding:10px 14px;
+    border-radius:4px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  button.btn[disabled]{opacity:0.5;cursor:not-allowed}
+  .progress{
+    width:100%;
+    height:14px;
+    background:#333;
+    border-radius:4px;
+    overflow:hidden;
+    border:1px solid var(--accent-dark);
+    margin-top:10px;
+  }
+  .progress>i{
+    display:block;
+    height:100%;
+    width:0%;
+    background: repeating-linear-gradient(
+      45deg,
+      var(--accent),
+      var(--accent) 10px,
+      var(--accent-dark) 10px,
+      var(--accent-dark) 20px
+    );
+    transition:width 0.12s linear;
+  }
+  .timer, .code{
+    font-size:18px;
+    font-weight:bold;
+    margin-top:10px;
+    display:inline-block;
+    background:black;
+    padding:6px 10px;
+    border-radius:4px;
+    color:var(--success);
+    border:1px solid var(--accent);
+  }
+  .side input{
+    width:100%;
+    padding:8px;
+    font-size:16px;
+    background:black;
+    color:var(--success);
+    border:1px solid var(--accent);
+    border-radius:4px;
+    text-align:center;
+  }
+  .msg{
+    margin-top:10px;
+    min-height:60px;
+    padding:8px;
+    border-radius:4px;
+    background:black;
+    border:1px solid var(--accent-dark);
+    color:var(--muted);
+  }
+  .ok{color:var(--success);}
+  .err{color:var(--danger);}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1 class="title">ИВЕНТ КАЗАХА :D</h1>
+    <div class="controls">
+      <button id="startBtn" class="btn">Взломать модуль</button>
+      <button id="resetBtn" class="btn">Сброс</button>
+    </div>
+    <div>Статус: <span id="statusText">Готов</span></div>
+    <div class="progress"><i id="progressBar"></i></div>
+    <div>
+      <span class="timer" id="timerDisplay">03:00</span>
+      <span class="code" id="codeDisplay">----</span>
+    </div>
+  </div>
+
+  <div class="card side">
+    <h1 class="title" style="font-size:20px;">Панель ввода</h1>
+    <input id="codeInput" type="text" maxlength="4" placeholder="____">
+    <button id="checkBtn" class="btn" style="margin-top:10px;">Проверить код</button>
+    <div id="message" class="msg">Введите код и нажмите «Проверить код».</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const DURATION = 3 * 60 * 1000; 
+  let startTime = null, timerInt = null, code = null, running = false;
+
+  const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const statusText = document.getElementById('statusText');
+  const progressBar = document.getElementById('progressBar');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const codeDisplay = document.getElementById('codeDisplay');
+  const codeInput = document.getElementById('codeInput');
+  const checkBtn = document.getElementById('checkBtn');
+  const message = document.getElementById('message');
+
+  function fmt(ms){
+    const s = Math.ceil(ms/1000);
+    const m = String(Math.floor(s/60)).padStart(2,'0');
+    const sec = String(s%60).padStart(2,'0');
+    return m+':'+sec;
+  }
+
+  function startHack(){
+    if(running) return;
+    running = true;
+    statusText.textContent = 'Взлом идёт';
+    codeDisplay.textContent = '----';
+    message.textContent = 'Взлом в процессе...';
+    startBtn.disabled = true;
+    startTime = performance.now();
+    const end = startTime + DURATION;
+    timerInt = setInterval(()=>{
+      const now = performance.now();
+      const frac = Math.min(1, (now-startTime)/DURATION);
+      progressBar.style.width = (frac*100)+'%';
+      timerDisplay.textContent = fmt(end-now);
+      if(frac>=1) finishHack();
+    },100);
+  }
+
+  function finishHack(){
+    clearInterval(timerInt);
+    running = false;
+    statusText.textContent = 'Взлом завершён';
+    code = String(Math.floor(Math.random()*10000)).padStart(4,'0');
+    codeDisplay.textContent = code;
+    message.textContent = 'Код сгенерирован, введите его в панель справа.';
+  }
+
+  function resetAll(){
+    clearInterval(timerInt);
+    running = false;
+    progressBar.style.width = '0%';
+    timerDisplay.textContent = fmt(DURATION);
+    codeDisplay.textContent = '----';
+    statusText.textContent = 'Готов';
+    message.textContent = 'Введите код и нажмите «Проверить код».';
+    code = null;
+    startBtn.disabled = false;
+    codeInput.value = '';
+  }
+
+  function checkCode(){
+    const val = codeInput.value.trim();
+    if(val === code){
+      message.innerHTML = '<span class="ok">Предупредите Ивентолога Казаха, что взлом успешен. Кодовое слово: "Рыба".</span>';
+    } else {
+      message.innerHTML = '<span class="err">Неверный код!</span>';
+    }
+  }
+
+  startBtn.addEventListener('click', startHack);
+  resetBtn.addEventListener('click', resetAll);
+  checkBtn.addEventListener('click', checkCode);
+  codeInput.addEventListener('input',()=> codeInput.value = codeInput.value.replace(/\D/g,'').slice(0,4));
+
+  resetAll();
+})();
+</script>
+</body>
+</html>
+
